@@ -19,7 +19,8 @@ public class SplashActivity extends AppCompatActivity {
     private static final String CLIENT_ID = "db4517df826f4bf0a0c302e68043f3c4";
     private static final String REDIRECT_URI ="com.spotifyplaylistmanager://callback";
     private static final int REQUEST_CODE = 1337;
-    private static final String SCOPES = "user-read-recently-played,user-library-modify,user-read-email,user-read-private";
+    private static final String SCOPES = "user-read-recently-played,user-library-modify,user-read-email,user-read-private,playlist-read-private" +
+                                          ",playlist-modify-public,playlist-modify-private";
     private SharedPreferences.Editor editor;
     private SharedPreferences msharedPreferences;
     private RequestQueue queue;
@@ -45,7 +46,7 @@ public class SplashActivity extends AppCompatActivity {
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
     }
 
-    private void waitForUserInfo() {
+    private UserService waitForUserInfo() {
         UserService userService = new UserService(queue, msharedPreferences);
         userService.get(() -> {
             User user = userService.getUser();
@@ -56,12 +57,12 @@ public class SplashActivity extends AppCompatActivity {
             editor.commit();
             startMainActivity();
         });
+        return userService;
     }
 
     private void getPlaylists(){
         UserService userService = new UserService(queue,msharedPreferences);
-        userService.getUserPlaylist(() -> {
-            User user = userService.getUser();
+        userService.getUserPlaylists(() -> {
             Log.d("Getting playlists", "GOT USER Palylist");
             // We use commit instead of apply because we need the information stored immediately
         });;
@@ -89,6 +90,7 @@ public class SplashActivity extends AppCompatActivity {
                     editor.apply();
                     waitForUserInfo();
                     getPlaylists();
+                    //createPlayList(); sE HACE TODO EL QUUEE DE UNA VEZ
                     break;
 
                 // Auth flow returned an error

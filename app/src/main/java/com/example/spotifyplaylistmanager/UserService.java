@@ -28,6 +28,7 @@ public class UserService {
     private SharedPreferences msharedPreferences;
     private RequestQueue mqueue;
     private User user;
+    private User ol;
 
     public UserService(RequestQueue queue, SharedPreferences sharedPreferences) {
         mqueue = queue;
@@ -44,11 +45,9 @@ public class UserService {
     }
 
     public void get(final VolleyCallBack callBack) {
-        Log.d("Debugging","Me llamaron get");
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(ENDPOINT, null, response -> {
             Gson gson = new Gson();
             user = gson.fromJson(response.toString(), User.class);
-            Log.d("Debugging","MIerda:"+user.id);
             callBack.onSuccess();
         }, error -> get(() -> {
 
@@ -65,10 +64,8 @@ public class UserService {
         mqueue.add(jsonObjectRequest);
     }
 
-    public void createPlaylist(final VolleyCallBack callBack,String playlistName,String playlistDescription,String userId) {
-        Log.d("Debugging","Me llamaron create");
-        final String CREATEPLAYLISTREQUEST = "https://api.spotify.com/v1/users/"+userId+"/playlists";
-        Log.d("debug",CREATEPLAYLISTREQUEST);
+    public void createPlaylist(final VolleyCallBack callBack,String playlistName,String playlistDescription) {
+        final String CREATEPLAYLISTREQUEST = "https://api.spotify.com/v1/users/"+msharedPreferences.getString("userid","eer")+"/playlists";
         JSONObject request = new JSONObject();
         try {
             request.put("name",playlistName);
@@ -99,7 +96,6 @@ public class UserService {
     }
 
     public ArrayList<PlayList> getUserPlaylists(final VolleyCallBack callBack) {
-        Log.d("Debugging","Me llamaron getP");
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, USERPLAYLISTENDPOINT, null, response -> {
                     Gson gson = new Gson();
@@ -130,5 +126,33 @@ public class UserService {
         };
         mqueue.add(jsonObjectRequest);
         return playlists;
+    }
+
+    public void addSong(VolleyCallBack callback,ArrayList<String> songs,String playlistId)  {
+        String uris = "https://api.spotify.com/v1/playlists/"+playlistId+"/tracks?uris=";
+        Log.d("DEBUGGING",songs.toString());
+        for (String uri:songs) {
+            uris+=uri+",";
+        }
+        final String ADDSONGTOPLAYLIST = uris.substring(0,uris.length()-1);
+        Log.d("DEBUGGING",ADDSONGTOPLAYLIST);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, ADDSONGTOPLAYLIST,null, response -> {
+            Gson gson = new Gson();
+            Log.d("DEBUGGING","ADDEDSONG");
+            callback.onSuccess();
+        }, error -> {
+            // TODO: Handle error
+
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                String token = msharedPreferences.getString("token", "");
+                String auth = "Bearer " + token;
+                headers.put("Authorization", auth);
+                return headers;
+            }
+        };
+        mqueue.add(jsonObjectRequest);
     }
 }

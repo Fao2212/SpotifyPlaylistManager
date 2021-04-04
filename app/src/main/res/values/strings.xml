@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">SpotifyPlaylistManager</string>
+    <string name="add_playlist">Add Playlist</string>
+    <string name="welcome_reque">Welcome Reque</string>
+    <string name="textview">TextView</string>
+    <string name="todo">TODO</string>
+    <string name="back">Back</string>
+    <string name="playlist_name">Playlist Name</string>
 </resources>

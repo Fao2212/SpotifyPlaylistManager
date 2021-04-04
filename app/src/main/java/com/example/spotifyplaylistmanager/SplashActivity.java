@@ -52,20 +52,13 @@ public class SplashActivity extends AppCompatActivity {
             User user = userService.getUser();
             editor = getSharedPreferences("SPOTIFY", 0).edit();
             editor.putString("userid", user.id);
+            editor.putString("username",user.display_name);
             Log.d("STARTING", "GOT USER INFORMATION" + user.display_name);
             // We use commit instead of apply because we need the information stored immediately
             editor.commit();
             startMainActivity();
         });
         return userService;
-    }
-
-    private void getPlaylists(){
-        UserService userService = new UserService(queue,msharedPreferences);
-        userService.getUserPlaylists(() -> {
-            Log.d("Getting playlists", "GOT USER Palylist");
-            // We use commit instead of apply because we need the information stored immediately
-        });;
     }
 
     private void startMainActivity() {
@@ -89,8 +82,6 @@ public class SplashActivity extends AppCompatActivity {
                     Log.d("STARTING", "GOT AUTH TOKEN");
                     editor.apply();
                     waitForUserInfo();
-                    getPlaylists();
-                    //createPlayList(); sE HACE TODO EL QUUEE DE UNA VEZ
                     break;
 
                 // Auth flow returned an error

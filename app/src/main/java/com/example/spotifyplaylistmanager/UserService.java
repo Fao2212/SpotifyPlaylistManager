@@ -24,11 +24,11 @@ public class UserService {
 
     private static final String ENDPOINT = "https://api.spotify.com/v1/me";
     private static final String USERPLAYLISTENDPOINT = "https://api.spotify.com/v1/me/playlists";
-    private ArrayList<PlayList> playlists = new ArrayList<>();
     private SharedPreferences msharedPreferences;
     private RequestQueue mqueue;
     private User user;
-    private User ol;
+    private ArrayList<PlayList> playlists = new ArrayList<>();
+    private PlayList createdPlayList;
 
     public UserService(RequestQueue queue, SharedPreferences sharedPreferences) {
         mqueue = queue;
@@ -43,6 +43,8 @@ public class UserService {
     public User getUser() {
         return user;
     }
+
+    public ArrayList<PlayList> getPlaylists(){return  playlists;}
 
     public void get(final VolleyCallBack callBack) {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(ENDPOINT, null, response -> {
@@ -64,8 +66,12 @@ public class UserService {
         mqueue.add(jsonObjectRequest);
     }
 
+    public PlayList getCreatedPlaylist(){
+        return  createdPlayList;
+    }
+
     public void createPlaylist(final VolleyCallBack callBack,String playlistName,String playlistDescription) {
-        final String CREATEPLAYLISTREQUEST = "https://api.spotify.com/v1/users/"+msharedPreferences.getString("userid","eer")+"/playlists";
+        final String CREATEPLAYLISTREQUEST = "https://api.spotify.com/v1/users/"+msharedPreferences.getString("userid","ERROR")+"/playlists";
         JSONObject request = new JSONObject();
         try {
             request.put("name",playlistName);
@@ -78,6 +84,7 @@ public class UserService {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,CREATEPLAYLISTREQUEST, request
         , response -> {
             Gson gson = new Gson();
+            createdPlayList = gson.fromJson(response.toString(), PlayList.class);
             Log.d("Create Playlist","Playlist Created");
             callBack.onSuccess();
         }, error -> get(() -> {
@@ -95,11 +102,12 @@ public class UserService {
         mqueue.add(jsonObjectRequest);
     }
 
-    public ArrayList<PlayList> getUserPlaylists(final VolleyCallBack callBack) {
+    public void getUserPlaylists(final VolleyCallBack callBack) {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, USERPLAYLISTENDPOINT, null, response -> {
                     Gson gson = new Gson();
                     JSONArray jsonArray = response.optJSONArray("items");
+                    playlists = new ArrayList<>();
                     for (int n = 0; n < jsonArray.length(); n++) {
                         try {
                             JSONObject object = jsonArray.getJSONObject(n);
@@ -125,7 +133,6 @@ public class UserService {
             }
         };
         mqueue.add(jsonObjectRequest);
-        return playlists;
     }
 
     public void addSong(VolleyCallBack callback,ArrayList<String> songs,String playlistId)  {
